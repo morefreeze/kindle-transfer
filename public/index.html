@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>æ çº¿ä¼ ä¹¦ Kindle Transfer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-canvas: #f5f4f0;
+      --surface-white: #fff;
+      --text-primary: #1a1a1a;
+      --text-secondary: #8c8c8c;
+      --text-faint: #b3b3b3;
+      --border-faint: rgba(0,0,0,0.04);
+      --font-serif: 'Playfair Display', serif;
+      --font-sans: 'Inter', sans-serif;
+      --radius-pill: 9999px;
+      --space-1: 4px;
+      --space-2: 8px;
+      --space-3: 16px;
+      --space-4: 24px;
+      --space-5: 32px;
+      --space-6: 48px;
+      --space-8: 64px;
+      --space-12: 96px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
+
+    body {
+      background: var(--bg-canvas);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    header {
+      position: absolute;
+      top: var(--space-5);
+      left: var(--space-5);
+      display: flex;
+      gap: var(--space-2);
+      z-index: 10;
+    }
+
+    .nav-pill {
+      background: var(--surface-white);
+      color: var(--text-primary);
+      padding: 6px 16px;
+      border-radius: var(--radius-pill);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      cursor: pointer;
+      transition: opacity .2s;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+    }
+    .nav-pill:hover { opacity: .7; }
+
+    main {
+      flex: 1;
+      display: flex;
+      margin-top: var(--space-12);
+      height: calc(100vh - var(--space-12) - 40px);
+    }
+
+    .panel-action {
+      width: 440px;
+      padding: 0 var(--space-6) var(--space-6) var(--space-6);
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid var(--border-faint);
+      overflow-y: auto;
+    }
+
+    .panel-display {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    h1 {
+      font-family: var(--font-serif);
+      font-size: 28px;
+      font-weight: 400;
+      margin-bottom: var(--space-2);
+      letter-spacing: -0.01em;
+    }
+
+    .subtitle {
+      font-size: 13px;
+      color: var(--text-primary);
+      margin-bottom: var(--space-8);
+      line-height: 1.5;
+    }
+
+    .label-caps {
+      font-family: var(--font-sans);
+      font-size: 10px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-primary);
+    }
+    .label-caps.muted { color: var(--text-secondary); }
+
+    .upload-zone {
+      border: 1px dashed #d1cfcb;
+      padding: var(--space-5);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      cursor: pointer;
+      margin-bottom: var(--space-6);
+      transition: background .2s, border-color .2s;
+      display: none;
+    }
+    .upload-zone.visible { display: flex; }
+    .upload-zone:hover { background: rgba(255,255,255,0.4); border-color: #b5b3b0; }
+    .upload-zone.dragover { background: rgba(255,255,255,0.6); border-color: #999; }
+
+    .upload-icon {
+      width: 24px;
+      height: 24px;
+      margin-bottom: var(--space-3);
+      color: var(--text-primary);
+    }
+
+    .list-header {
+      margin-bottom: var(--space-3);
+      display: flex;
+      justify-content: space-between;
+      display: none;
+    }
+    .list-header.visible { display: flex; }
+
+    .file-list {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .file-item {
+      display: flex;
+      align-items: stretch;
+      background: transparent;
+      padding: var(--space-3);
+      cursor: pointer;
+      transition: background .2s, opacity .2s;
+    }
+    .file-item:hover { background: var(--surface-white); }
+
+    .file-thumb {
+      width: 56px;
+      height: 64px;
+      background: #eae8e3;
+      margin-right: var(--space-4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .file-details {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      flex: 1;
+      padding: 2px 0;
+      min-width: 0;
+    }
+
+    .file-title {
+      font-family: var(--font-serif);
+      font-size: 15px;
+      color: var(--text-primary);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .file-meta {
+      font-size: 11px;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+
+    .file-action {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: flex-end;
+      padding: 2px 0;
+      flex-shrink: 0;
+      margin-left: var(--space-3);
+    }
+
+    .file-action-text {
+      font-family: var(--font-sans);
+      font-size: 10px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-primary);
+      transition: opacity .2s;
+    }
+    .file-item:hover .file-action-text { opacity: .6; }
+
+    .code-display-wrapper {
+      text-align: center;
+      animation: fadeIn .5s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .code-label { margin-bottom: var(--space-4); color: var(--text-secondary); }
+
+    .huge-code {
+      font-family: var(--font-serif);
+      font-size: 140px;
+      line-height: 1;
+      letter-spacing: 0.05em;
+      color: var(--text-primary);
+      margin-bottom: var(--space-6);
+    }
+
+    .instruction-box {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-3);
+      background: var(--surface-white);
+      padding: var(--space-3) var(--space-5);
+      border-radius: var(--radius-pill);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+    }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      background: #5bb371;
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(91,179,113,0.4); }
+      70% { box-shadow: 0 0 0 6px rgba(91,179,113,0); }
+      100% { box-shadow: 0 0 0 0 rgba(91,179,113,0); }
+    }
+
+    .room-form {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-3);
+      margin-top: var(--space-4);
+    }
+
+    .room-input {
+      font-family: var(--font-serif);
+      font-size: 48px;
+      text-align: center;
+      border: none;
+      border-bottom: 2px solid var(--border-faint);
+      background: transparent;
+      padding: var(--space-2) var(--space-4);
+      width: 240px;
+      letter-spacing: 0.05em;
+      outline: none;
+      transition: border-color .2s;
+    }
+    .room-input:focus { border-color: var(--text-secondary); }
+
+    .room-btn {
+      background: var(--text-primary);
+      color: var(--surface-white);
+      border: none;
+      padding: 10px 32px;
+      border-radius: var(--radius-pill);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: opacity .2s;
+    }
+    .room-btn:hover { opacity: .8; }
+
+    footer {
+      height: 40px;
+      background: var(--surface-white);
+      display: flex;
+      align-items: center;
+      padding: 0 var(--space-5);
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      color: var(--text-primary);
+      border-top: 1px solid var(--border-faint);
+    }
+    footer strong { font-weight: 600; margin-right: var(--space-1); }
+
+    /* Upload progress */
+    .upload-progress {
+      width: 100%;
+      height: 2px;
+      background: var(--border-faint);
+      margin-top: var(--space-2);
+      border-radius: 1px;
+      overflow: hidden;
+      display: none;
+    }
+    .upload-progress.active { display: block; }
+    .upload-progress-bar {
+      height: 100%;
+      background: var(--text-primary);
+      width: 0%;
+      transition: width .3s;
+    }
+
+    /* Toast notification */
+    .toast {
+      position: fixed;
+      bottom: 60px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--text-primary);
+      color: var(--surface-white);
+      padding: 10px 24px;
+      border-radius: var(--radius-pill);
+      font-size: 12px;
+      font-weight: 500;
+      opacity: 0;
+      transition: opacity .3s, transform .3s;
+      z-index: 100;
+      pointer-events: none;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    @media(max-width:768px) {
+      main {
+        flex-direction: column-reverse;
+        margin-top: 0;
+        height: auto;
+        min-height: 100vh;
+      }
+      .panel-action {
+        width: 100%;
+        border-right: none;
+        border-top: 1px solid var(--border-faint);
+        padding: var(--space-4);
+      }
+      .panel-display {
+        min-height: 40vh;
+        padding: var(--space-6) var(--space-4);
+      }
+      .huge-code { font-size: 72px; }
+      header { position: relative; top: 0; left: 0; padding: var(--space-3); }
+      body { overflow: auto; }
+      footer { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <a href="/" class="nav-pill" id="navHome">é¦é¡µ Home</a>
+  </header>
+
+  <main>
+    <div class="panel-action">
+      <h1>æ çº¿ä¼ ä¹¦</h1>
+      <p class="subtitle">
+        éè¿ Wi-Fi æ çº¿ä¼ è¾æä»¶å°å¶ä»è®¾å¤ãè¾å¥æ¿é´ç å³å¯å¼å§ã<br>
+        Transfer files wirelessly via Wi-Fi. Enter a room code to get started.
+      </p>
+
+      <div class="label-caps" style="margin-bottom: 8px;">æ¯ææ ¼å¼ Supported formats</div>
+      <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 8px;">
+        .MOBI &middot; .AZW &middot; .AZW3 &middot; .PRC &middot; .TXT &middot; .EPUB &middot; .PDF
+      </p>
+      <p class="label-caps muted" style="font-size: 11px; margin-bottom: 48px;">
+        ä»¥ä¸æ ¼å¼å¯å¨ Kindle æå¶ä»è®¾å¤çæµè§å¨ä¸­ç´æ¥ä¸è½½ã
+      </p>
+
+      <div class="upload-zone visible" id="uploadZone">
+        <div class="upload-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="17 8 12 3 7 8"/>
+            <line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+        </div>
+        <span style="font-size: 13px; color: var(--text-secondary);">
+          ç¹å»æææ½æä»¶å°æ­¤å¤ä¸ä¼ <br>
+          <span style="font-size: 11px; color: var(--text-faint);">Click or drag files here to upload</span>
+        </span>
+        <input type="file" id="fileInput" hidden multiple accept=".mobi,.azw,.azw3,.prc,.txt,.epub,.pdf">
+        <div class="upload-progress" id="uploadProgress">
+          <div class="upload-progress-bar" id="uploadProgressBar"></div>
+        </div>
+      </div>
+
+      <div class="list-header" id="listHeader">
+        <span class="label-caps">å·²ä¸ä¼  Uploaded</span>
+        <span class="label-caps muted" id="fileCount"></span>
+      </div>
+      <div class="file-list" id="fileList"></div>
+    </div>
+
+    <div class="panel-display">
+      <div class="code-display-wrapper" id="codeDisplay" style="display: none;">
+        <div class="label-caps code-label">Room Code &middot; æ¿é´ç </div>
+        <div class="huge-code" id="roomCodeDisplay"></div>
+        <div class="instruction-box">
+          <div class="pulse-dot"></div>
+          <span style="font-size: 12px; color: var(--text-secondary);">
+            å¨å¶ä»è®¾å¤æµè§å¨ä¸­è®¿é®æ­¤é¡µé¢ï¼è¾å¥æ¿é´ç ä¸è½½æä»¶
+          </span>
+        </div>
+      </div>
+
+      <div class="room-form" id="roomForm">
+        <div class="label-caps" style="margin-bottom: 8px; color: var(--text-secondary);">Enter Room Code &middot; è¾å¥æ¿é´ç </div>
+        <input type="text" class="room-input" id="roomInput"
+               placeholder="____"
+               maxlength="6"
+               inputmode="numeric"
+               pattern="[0-9]*"
+               autocomplete="off">
+        <p style="font-size: 11px; color: var(--text-secondary); text-align: center; max-width: 280px;">
+          è¾å¥ä»»ææ°å­åå»ºæå å¥æ¿é´<br>Enter any code to create or join a room
+        </p>
+        <button class="room-btn" id="roomBtn">è¿å¥æ¿é´ Enter</button>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <strong>KINDLE TRANSFER</strong> &mdash; ä¸ä¼ æä»¶ï¼å¨å¶ä»è®¾å¤ä¸ä¸è½½ &middot; Upload files and download them on your device.
+  </footer>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // --- State ---
+    let currentRoom = null;
+    let files = [];
+
+    // --- Elements ---
+    const roomForm = document.getElementById('roomForm');
+    const roomInput = document.getElementById('roomInput');
+    const roomBtn = document.getElementById('roomBtn');
+    const codeDisplay = document.getElementById('codeDisplay');
+    const roomCodeDisplay = document.getElementById('roomCodeDisplay');
+    const uploadZone = document.getElementById('uploadZone');
+    const fileInput = document.getElementById('fileInput');
+    const fileList = document.getElementById('fileList');
+    const listHeader = document.getElementById('listHeader');
+    const fileCount = document.getElementById('fileCount');
+    const uploadProgress = document.getElementById('uploadProgress');
+    const uploadProgressBar = document.getElementById('uploadProgressBar');
+    const navHome = document.getElementById('navHome');
+    const toast = document.getElementById('toast');
+
+    // --- Toast ---
+    let toastTimer;
+    function showToast(msg) {
+      toast.textContent = msg;
+      toast.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove('show'), 2500);
+    }
+
+    // --- Format file size ---
+    function formatSize(bytes) {
+      if (bytes < 1024) return bytes + ' B';
+      if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+      return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    }
+
+    // --- Render file list ---
+    function renderFiles() {
+      listHeader.classList.toggle('visible', files.length > 0);
+      fileCount.textContent = files.length + (files.length === 1 ? ' file' : ' files');
+
+      fileList.innerHTML = '';
+      for (const f of files) {
+        const item = document.createElement('div');
+        item.className = 'file-item';
+        item.innerHTML = `
+          <div class="file-thumb">
+            <span style="font-size: 10px; color: var(--text-secondary); font-weight: 500;">.${f.ext}</span>
+          </div>
+          <div class="file-details">
+            <div class="file-title">${escapeHtml(f.name)}</div>
+            <div class="file-meta">
+              <span>${formatSize(f.size)}</span>
+              <span>&middot;</span>
+              <span>${f.ext}</span>
+            </div>
+          </div>
+          <div class="file-action">
+            <span class="file-action-text">Download</span>
+          </div>
+        `;
+        item.addEventListener('click', () => {
+          window.open('/api/room/' + currentRoom + '/download/' + f.id, '_blank');
+        });
+        fileList.appendChild(item);
+      }
+    }
+
+    function escapeHtml(str) {
+      const d = document.createElement('div');
+      d.textContent = str;
+      return d.innerHTML;
+    }
+
+    // --- Polling (æ¿ä»£ WebSocketï¼éé Vercel Serverless) ---
+    let pollTimer = null;
+
+    function startPolling(code) {
+      stopPolling();
+      pollTimer = setInterval(() => {
+        if (!currentRoom) return;
+        fetch('/api/room/' + code + '/files')
+          .then(r => r.json())
+          .then(data => {
+            const newFiles = data.files || [];
+            if (newFiles.length > files.length) {
+              showToast('æ°æä»¶å·²ä¸ä¼  New file uploaded');
+            }
+            files = newFiles;
+            renderFiles();
+          })
+          .catch(() => {});
+      }, 3000);
+    }
+
+    function stopPolling() {
+      if (pollTimer) {
+        clearInterval(pollTimer);
+        pollTimer = null;
+      }
+    }
+
+    // --- Join room ---
+    function joinRoom(code) {
+      code = code.trim();
+      if (!code) return;
+      currentRoom = code;
+
+      // åæ¢ UI
+      roomForm.style.display = 'none';
+      codeDisplay.style.display = 'block';
+      roomCodeDisplay.textContent = code;
+
+      // æ´æ° URL
+      history.pushState(null, '', '/?room=' + code);
+
+      // å¯å¨è½®è¯¢
+      startPolling(code);
+
+      // å è½½å·²ææä»¶
+      fetch('/api/room/' + code + '/files')
+        .then(r => r.json())
+        .then(data => {
+          files = data.files || [];
+          renderFiles();
+        });
+    }
+
+    // --- Upload ---
+    function uploadFile(file) {
+      if (!currentRoom) return;
+      const formData = new FormData();
+      formData.append('file', file);
+
+      uploadProgress.classList.add('active');
+      uploadProgressBar.style.width = '0%';
+
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', '/api/room/' + currentRoom + '/upload');
+      xhr.upload.onprogress = (e) => {
+        if (e.lengthComputable) {
+          uploadProgressBar.style.width = Math.round(e.loaded / e.total * 100) + '%';
+        }
+      };
+      xhr.onload = () => {
+        uploadProgress.classList.remove('active');
+        uploadProgressBar.style.width = '0%';
+        if (xhr.status === 200) {
+          const data = JSON.parse(xhr.responseText);
+          // æä»¶ä¼éè¿ WebSocket éç¥ï¼æ éæå¨ push
+          showToast('ä¸ä¼ æå Upload complete');
+        } else {
+          showToast('ä¸ä¼ å¤±è´¥ Upload failed');
+        }
+      };
+      xhr.onerror = () => {
+        uploadProgress.classList.remove('active');
+        showToast('ä¸ä¼ å¤±è´¥ Upload failed');
+      };
+      xhr.send(formData);
+    }
+
+    // --- Event listeners ---
+    roomBtn.addEventListener('click', () => joinRoom(roomInput.value));
+    roomInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') joinRoom(roomInput.value);
+    });
+
+    navHome.addEventListener('click', (e) => {
+      e.preventDefault();
+      currentRoom = null;
+      stopPolling();
+      files = [];
+      renderFiles();
+      roomForm.style.display = '';
+      codeDisplay.style.display = 'none';
+      roomInput.value = '';
+      history.pushState(null, '', '/');
+    });
+
+    uploadZone.addEventListener('click', () => {
+      if (!currentRoom) {
+        showToast('è¯·åè¿å¥æ¿é´ Please join a room first');
+        return;
+      }
+      fileInput.click();
+    });
+    fileInput.addEventListener('change', () => {
+      for (const f of fileInput.files) uploadFile(f);
+      fileInput.value = '';
+    });
+
+    uploadZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadZone.classList.add('dragover');
+    });
+    uploadZone.addEventListener('dragleave', () => {
+      uploadZone.classList.remove('dragover');
+    });
+    uploadZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadZone.classList.remove('dragover');
+      if (!currentRoom) {
+        showToast('è¯·åè¿å¥æ¿é´ Please join a room first');
+        return;
+      }
+      for (const f of e.dataTransfer.files) uploadFile(f);
+    });
+
+    // --- URL room parameter ---
+    const params = new URLSearchParams(location.search);
+    const urlRoom = params.get('room');
+    if (urlRoom) {
+      joinRoom(urlRoom);
+    }
+  </script>
+</body>
+</html>
