@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>æ çº¿ä¼ ä¹¦ Kindle Transfer</title>
+  <title>无线传书 Kindle Transfer</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
@@ -380,23 +380,23 @@
 <body>
 
   <header>
-    <a href="/" class="nav-pill" id="navHome">é¦é¡µ Home</a>
+    <a href="/" class="nav-pill" id="navHome">首页 Home</a>
   </header>
 
   <main>
     <div class="panel-action">
-      <h1>æ çº¿ä¼ ä¹¦</h1>
+      <h1>无线传书</h1>
       <p class="subtitle">
-        éè¿ Wi-Fi æ çº¿ä¼ è¾æä»¶å°å¶ä»è®¾å¤ãè¾å¥æ¿é´ç å³å¯å¼å§ã<br>
+        通过 Wi-Fi 无线传输文件到其他设备。输入房间码即可开始。<br>
         Transfer files wirelessly via Wi-Fi. Enter a room code to get started.
       </p>
 
-      <div class="label-caps" style="margin-bottom: 8px;">æ¯ææ ¼å¼ Supported formats</div>
+      <div class="label-caps" style="margin-bottom: 8px;">支持格式 Supported formats</div>
       <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 8px;">
         .MOBI &middot; .AZW &middot; .AZW3 &middot; .PRC &middot; .TXT &middot; .EPUB &middot; .PDF
       </p>
       <p class="label-caps muted" style="font-size: 11px; margin-bottom: 48px;">
-        ä»¥ä¸æ ¼å¼å¯å¨ Kindle æå¶ä»è®¾å¤çæµè§å¨ä¸­ç´æ¥ä¸è½½ã
+        以上格式可在 Kindle 或其他设备的浏览器中直接下载。
       </p>
 
       <div class="upload-zone visible" id="uploadZone">
@@ -408,7 +408,7 @@
           </svg>
         </div>
         <span style="font-size: 13px; color: var(--text-secondary);">
-          ç¹å»æææ½æä»¶å°æ­¤å¤ä¸ä¼ <br>
+          点击或拖拽文件到此处上传<br>
           <span style="font-size: 11px; color: var(--text-faint);">Click or drag files here to upload</span>
         </span>
         <input type="file" id="fileInput" hidden multiple accept=".mobi,.azw,.azw3,.prc,.txt,.epub,.pdf">
@@ -418,7 +418,7 @@
       </div>
 
       <div class="list-header" id="listHeader">
-        <span class="label-caps">å·²ä¸ä¼  Uploaded</span>
+        <span class="label-caps">已上传 Uploaded</span>
         <span class="label-caps muted" id="fileCount"></span>
       </div>
       <div class="file-list" id="fileList"></div>
@@ -426,18 +426,18 @@
 
     <div class="panel-display">
       <div class="code-display-wrapper" id="codeDisplay" style="display: none;">
-        <div class="label-caps code-label">Room Code &middot; æ¿é´ç </div>
+        <div class="label-caps code-label">Room Code &middot; 房间码</div>
         <div class="huge-code" id="roomCodeDisplay"></div>
         <div class="instruction-box">
           <div class="pulse-dot"></div>
           <span style="font-size: 12px; color: var(--text-secondary);">
-            å¨å¶ä»è®¾å¤æµè§å¨ä¸­è®¿é®æ­¤é¡µé¢ï¼è¾å¥æ¿é´ç ä¸è½½æä»¶
+            在其他设备浏览器中访问此页面，输入房间码下载文件
           </span>
         </div>
       </div>
 
       <div class="room-form" id="roomForm">
-        <div class="label-caps" style="margin-bottom: 8px; color: var(--text-secondary);">Enter Room Code &middot; è¾å¥æ¿é´ç </div>
+        <div class="label-caps" style="margin-bottom: 8px; color: var(--text-secondary);">Enter Room Code &middot; 输入房间码</div>
         <input type="text" class="room-input" id="roomInput"
                placeholder="____"
                maxlength="6"
@@ -445,15 +445,15 @@
                pattern="[0-9]*"
                autocomplete="off">
         <p style="font-size: 11px; color: var(--text-secondary); text-align: center; max-width: 280px;">
-          è¾å¥ä»»ææ°å­åå»ºæå å¥æ¿é´<br>Enter any code to create or join a room
+          输入任意数字创建或加入房间<br>Enter any code to create or join a room
         </p>
-        <button class="room-btn" id="roomBtn">è¿å¥æ¿é´ Enter</button>
+        <button class="room-btn" id="roomBtn">进入房间 Enter</button>
       </div>
     </div>
   </main>
 
   <footer>
-    <strong>KINDLE TRANSFER</strong> &mdash; ä¸ä¼ æä»¶ï¼å¨å¶ä»è®¾å¤ä¸ä¸è½½ &middot; Upload files and download them on your device.
+    <strong>KINDLE TRANSFER</strong> &mdash; 上传文件，在其他设备上下载 &middot; Upload files and download them on your device.
   </footer>
 
   <div class="toast" id="toast"></div>
@@ -533,7 +533,7 @@
       return d.innerHTML;
     }
 
-    // --- Polling (æ¿ä»£ WebSocketï¼éé Vercel Serverless) ---
+    // --- Polling (替代 WebSocket，适配 Vercel Serverless) ---
     let pollTimer = null;
 
     function startPolling(code) {
@@ -545,7 +545,7 @@
           .then(data => {
             const newFiles = data.files || [];
             if (newFiles.length > files.length) {
-              showToast('æ°æä»¶å·²ä¸ä¼  New file uploaded');
+              showToast('新文件已上传 New file uploaded');
             }
             files = newFiles;
             renderFiles();
@@ -567,18 +567,18 @@
       if (!code) return;
       currentRoom = code;
 
-      // åæ¢ UI
+      // 切换 UI
       roomForm.style.display = 'none';
       codeDisplay.style.display = 'block';
       roomCodeDisplay.textContent = code;
 
-      // æ´æ° URL
+      // 更新 URL
       history.pushState(null, '', '/?room=' + code);
 
-      // å¯å¨è½®è¯¢
+      // 启动轮询
       startPolling(code);
 
-      // å è½½å·²ææä»¶
+      // 加载已有文件
       fetch('/api/room/' + code + '/files')
         .then(r => r.json())
         .then(data => {
@@ -608,15 +608,15 @@
         uploadProgressBar.style.width = '0%';
         if (xhr.status === 200) {
           const data = JSON.parse(xhr.responseText);
-          // æä»¶ä¼éè¿ WebSocket éç¥ï¼æ éæå¨ push
-          showToast('ä¸ä¼ æå Upload complete');
+          // 文件会通过 WebSocket 通知，无需手动 push
+          showToast('上传成功 Upload complete');
         } else {
-          showToast('ä¸ä¼ å¤±è´¥ Upload failed');
+          showToast('上传失败 Upload failed');
         }
       };
       xhr.onerror = () => {
         uploadProgress.classList.remove('active');
-        showToast('ä¸ä¼ å¤±è´¥ Upload failed');
+        showToast('上传失败 Upload failed');
       };
       xhr.send(formData);
     }
@@ -641,7 +641,7 @@
 
     uploadZone.addEventListener('click', () => {
       if (!currentRoom) {
-        showToast('è¯·åè¿å¥æ¿é´ Please join a room first');
+        showToast('请先进入房间 Please join a room first');
         return;
       }
       fileInput.click();
@@ -662,7 +662,7 @@
       e.preventDefault();
       uploadZone.classList.remove('dragover');
       if (!currentRoom) {
-        showToast('è¯·åè¿å¥æ¿é´ Please join a room first');
+        showToast('请先进入房间 Please join a room first');
         return;
       }
       for (const f of e.dataTransfer.files) uploadFile(f);
